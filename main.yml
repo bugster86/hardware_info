@@ -1,0 +1,35 @@
+- hosts: localhost
+  gather_facts: true
+
+  vars:
+    output: /tmp/HARDWARE_INFO-{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.csv
+
+  tasks:
+  - setup:
+  - file: dest={{ output }} state=absent
+  - file: dest={{ output }} state=touch
+  - name: Creo intestazione per il file "{{ output }}"
+    lineinfile:
+        path: "{{ output }}"
+        state: present
+        line: 'INVENTORY_NAME ; VCPU ; VRAM ; DISCHI ; VIRTUAL? '
+  - set_fact: risultato={{ output }}
+
+- hosts: all
+  gather_facts: true
+
+
+  tasks:
+  #- debug: var=hostvars['localhost']['risultato']
+  - shell: "fdisk -l | egrep 'Disk|Disco' | grep '/dev/sd' | awk '{print $2 $3}' | sort | paste -sd ','"
+    changed_when: false
+    register: dischi
+
+  - lineinfile:
+        dest: "{{ hostvars['localhost']['risultato'] }}"
+        line: "{{ inventory_hostname }};{{ ansible_processor_vcpus}}; {{ ansible_memtotal_mb }} ; {{ dischi.stdout }} ;{{ ansible_virtualization_type }}"
+    delegate_to: localhost
+
+
+
+
