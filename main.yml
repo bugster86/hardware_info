@@ -30,6 +30,20 @@
         line: "{{ inventory_hostname }};{{ ansible_processor_vcpus}}; {{ ansible_memtotal_mb }} ; {{ dischi.stdout }} ;{{ ansible_virtualization_type }}"
     delegate_to: localhost
 
+- name: Invio della mail finale
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+  - mail:
+        subject: 'Invio REPORT HARDWARE_INFO {{ hostvars['localhost']['risultato'] }} '
+        #to: Martino.Vigano@enghouse.com, cloudando@enghouse.com
+        to: "{{ to_mail | default('Martino.Vigano@enghouse.com')}}"
+        from: ansible@reitek.com
+        body: "In allegato trovi il file"
+        attach: "{{ hostvars['localhost']['risultato'] }}"
 
+  
+  
 
 
