@@ -20,14 +20,10 @@
 
 
   tasks:
-  #- debug: var=hostvars['localhost']['risultato']
-  - shell: "fdisk -l | egrep 'Disk|Disco' | grep '/dev/sd' | awk '{print $2 $3}' | sort | paste -sd ','"
-    changed_when: false
-    register: dischi
-
+ 
   - lineinfile:
         dest: "{{ hostvars['localhost']['risultato'] }}"
-        line: "{{ inventory_hostname }};{{ ansible_processor_vcpus}}; {{ ansible_memtotal_mb }} ; {{ dischi.stdout }} ;{{ ansible_virtualization_type }}"
+        line: "{{ inventory_hostname }};{{ ansible_processor_vcpus}}; {{ ansible_memtotal_mb }} ; {{ ansible_devices | json_query('to_array(*)[?model == `Virtual disk`].size') | join (',') }} ;{{ ansible_virtualization_type }}"
     delegate_to: localhost
 
 - name: Invio della mail finale
